@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="API de Gestão Escolar com IA")
 
-# Configurar CORS para permitir acessos livres à API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,9 +20,11 @@ try:
 except Exception as e:
     modelo = None
 
+# Caminho na pasta /tmp (único local com permissão de escrita no plano gratuito do Render)
+DB_PATH = "/tmp/escola.db"
+
 def inicializar_banco():
-    """Cria a base de dados e a tabela de alunos automaticamente se não existirem"""
-    conn = sqlite3.connect("escola.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS alunos (
@@ -36,7 +37,6 @@ def inicializar_banco():
         )
     ''')
     
-    # Inserir dados de exemplo caso a tabela esteja vazia
     cursor.execute("SELECT COUNT(*) FROM alunos")
     if cursor.fetchone()[0] == 0:
         alunos_exemplo = [
@@ -54,11 +54,10 @@ def inicializar_banco():
     
     conn.close()
 
-# Executar a inicialização ao iniciar a aplicação
 inicializar_banco()
 
 def conectar_banco():
-    conn = sqlite3.connect("escola.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
