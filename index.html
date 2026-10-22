@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Gestão Escolar - IA Preditiva</title>
     <style>
         body {
@@ -12,178 +11,291 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
         }
         .container {
-            background-color: #ffffff;
+            background: white;
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 500px;
-        }
-        h2 {
-            color: #333333;
-            text-align: center;
+            max-width: 600px;
             margin-bottom: 20px;
         }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 15px;
-            color: #555555;
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
         }
-        select, input, button {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 6px;
             box-sizing: border-box;
         }
         button {
-            background-color: #007bff;
+            width: 100%;
+            background-color: #0066ff;
             color: white;
-            font-size: 16px;
-            font-weight: bold;
             border: none;
-            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
             cursor: pointer;
+            font-weight: bold;
             transition: background 0.3s;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #0052cc;
+        }
+        .btn-cadastrar {
+            background-color: #28a745;
+        }
+        .btn-cadastrar:hover {
+            background-color: #218838;
         }
         .resultado {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px;
-            border-radius: 5px;
-            display: none;
+            border-radius: 6px;
             text-align: center;
             font-weight: bold;
+            display: none;
         }
-        .baixo-risco {
+        .sucesso {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        .alto-risco {
+        .erro {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+        }
+        .card-detalhes {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #495057;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Análise Preditiva de Risco Escolar</h2>
+    <!-- SECÇÃO 1: CADASTRAR NOVO ALUNO -->
+    <div class="container">
+        <h2>Cadastrar Novo Aluno</h2>
+        <form id="formCadastro">
+            <div class="form-group">
+                <label>Nome do Aluno:</label>
+                <input type="text" id="cadNome" required placeholder="Ex: Lucas Mendes">
+            </div>
+            <div class="form-group">
+                <label>Turma:</label>
+                <input type="text" id="cadTurma" required placeholder="Ex: 2º Ano B">
+            </div>
+            <div class="form-group">
+                <label>Turno / Horário:</label>
+                <select id="cadHorario" required>
+                    <option value="">Selecione o Turno</option>
+                    <option value="Matutino">Matutino</option>
+                    <option value="Vespertino">Vespertino</option>
+                    <option value="Noturno">Noturno</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Professor Responsável:</label>
+                <input type="text" id="cadProfessor" required placeholder="Ex: Profª Ana Paula">
+            </div>
+            <div class="form-group">
+                <label>Frequência (%):</label>
+                <input type="number" step="0.1" id="cadFrequencia" required placeholder="Ex: 85.0">
+            </div>
+            <div class="form-group">
+                <label>Nota de Matemática:</label>
+                <input type="number" step="0.1" id="cadNotaMat" required placeholder="Ex: 7.5">
+            </div>
+            <div class="form-group">
+                <label>Nota de Português:</label>
+                <input type="number" step="0.1" id="cadNotaPort" required placeholder="Ex: 8.0">
+            </div>
+            <div class="form-group">
+                <label>Histórico de Reprovações:</label>
+                <input type="number" id="cadReprovacoes" required value="0">
+            </div>
+            <button type="submit" class="btn-cadastrar">Salvar Novo Aluno</button>
+        </form>
+        <div id="msgCadastro" class="resultado"></div>
+    </div>
 
-    <label for="select-aluno">Selecionar Aluno (SQLite):</label>
-    <select id="select-aluno" onchange="carregarDadosAluno()">
-        <option value="">Carregando alunos da nuvem...</option>
-    </select>
+    <!-- SECÇÃO 2: ANÁLISE PREDITIVA DE RISCO -->
+    <div class="container">
+        <h2>Análise Preditiva de Risco Escolar</h2>
+        <div class="form-group">
+            <label>Selecionar Aluno (SQLite):</label>
+            <select id="selectAluno">
+                <option value="">-- A carregar alunos --</option>
+            </select>
+        </div>
 
-    <form id="form-aluno">
-        <label for="frequencia">Frequência (%):</label>
-        <input type="number" id="frequencia" min="0" max="100" required readonly>
+        <!-- Detalhes do Aluno Selecionado -->
+        <div id="cardDetalhes" class="card-detalhes">
+            <p><strong>Turma:</strong> <span id="lblTurma"></span></p>
+            <p><strong>Turno:</strong> <span id="lblHorario"></span></p>
+            <p><strong>Professor:</strong> <span id="lblProfessor"></span></p>
+        </div>
 
-        <label for="nota_mat">Nota de Matemática:</label>
-        <input type="number" id="nota_mat" step="0.1" min="0" max="10" required readonly>
+        <div class="form-group">
+            <label>Frequência (%):</label>
+            <input type="text" id="freq" readonly>
+        </div>
+        <div class="form-group">
+            <label>Nota de Matemática:</label>
+            <input type="text" id="mat" readonly>
+        </div>
+        <div class="form-group">
+            <label>Nota de Português:</label>
+            <input type="text" id="port" readonly>
+        </div>
+        <div class="form-group">
+            <label>Histórico de Reprovações:</label>
+            <input type="text" id="rep" readonly>
+        </div>
+        <button onclick="analisarRisco()">Analisar Risco com IA</button>
+        <div id="resultadoAnalise" class="resultado"></div>
+    </div>
 
-        <label for="nota_port">Nota de Português:</label>
-        <input type="number" id="nota_port" step="0.1" min="0" max="10" required readonly>
+    <script>
+        let listaAlunosGlobal = [];
 
-        <label for="historico_reprovacoes">Histórico de Reprovações:</label>
-        <input type="number" id="historico_reprovacoes" min="0" required readonly>
-
-        <button type="button" onclick="analisarRisco()">Analisar Risco com IA</button>
-    </form>
-
-    <div id="resultado" class="resultado"></div>
-</div>
-
-<script>
-    // URL Base da API hospedada no Render
-    const API_URL = 'https://gesto-escolar-ia.onrender.com';
-    let alunosData = [];
-
-    // Busca a lista de alunos do SQLite via API
-    async function carregarAlunos() {
-        try {
-            const resposta = await fetch(`${API_URL}/alunos`);
-            alunosData = await resposta.json();
-            
-            const select = document.getElementById('select-aluno');
-            select.innerHTML = '<option value="">-- Selecione um aluno --</option>';
-
-            alunosData.forEach(aluno => {
-                const option = document.createElement('option');
-                option.value = aluno.id;
-                option.textContent = `${aluno.nome} (ID: ${aluno.id})`;
-                select.appendChild(option);
-            });
-        } catch (erro) {
-            console.error('Erro ao buscar alunos:', erro);
-            document.getElementById('select-aluno').innerHTML = '<option value="">Erro ao carregar dados da API</option>';
-        }
-    }
-
-    // Preenche os campos do formulário ao selecionar o aluno no menu suspenso
-    function carregarDadosAluno() {
-        const alunoId = parseInt(document.getElementById('select-aluno').value);
-        const aluno = alunosData.find(a => a.id === alunoId);
-
-        if (aluno) {
-            document.getElementById('frequencia').value = aluno.frequencia;
-            document.getElementById('nota_mat').value = aluno.nota_mat;
-            document.getElementById('nota_port').value = aluno.nota_port;
-            document.getElementById('historico_reprovacoes').value = aluno.historico_reprovacoes;
-        } else {
-            document.getElementById('form-aluno').reset();
-        }
-
-        document.getElementById('resultado').style.display = 'none';
-    }
-
-    // Envia o ID para o endpoint de predição da IA
-    async function analisarRisco() {
-        const alunoId = document.getElementById('select-aluno').value;
-
-        if (!alunoId) {
-            alert('Por favor, selecione um aluno na lista!');
-            return;
-        }
-
-        const divResultado = document.getElementById('resultado');
-        divResultado.style.display = 'block';
-        divResultado.className = 'resultado';
-        divResultado.textContent = 'Processando modelo de IA...';
-
-        try {
-            const resposta = await fetch(`${API_URL}/predict/${alunoId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const dados = await resposta.json();
-
-            if (dados.risco_evasao === 1) {
-                divResultado.className = 'resultado alto-risco';
-                divResultado.innerHTML = `⚠️ <strong>ALTO RISCO DE EVASÃO</strong><br>Probabilidade: ${(dados.probabilidade * 100).toFixed(1)}%`;
-            } else {
-                divResultado.className = 'resultado baixo-risco';
-                divResultado.innerHTML = `✅ <strong>BAIXO RISCO DE EVASÃO</strong><br>Probabilidade de Risco: ${(dados.probabilidade * 100).toFixed(1)}%`;
+        async function carregarAlunos() {
+            try {
+                const res = await fetch('/alunos');
+                listaAlunosGlobal = await res.json();
+                const select = document.getElementById('selectAluno');
+                select.innerHTML = '<option value="">-- Selecione um aluno --</option>';
+                listaAlunosGlobal.forEach(aluno => {
+                    const opt = document.createElement('option');
+                    opt.value = aluno.id;
+                    opt.textContent = `${aluno.nome} (${aluno.turma || 'Sem turma'})`;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Erro ao carregar alunos:", err);
             }
-        } catch (erro) {
-            console.error('Erro na análise:', erro);
-            divResultado.className = 'resultado alto-risco';
-            divResultado.textContent = 'Erro ao se comunicar com o servidor da IA.';
         }
-    }
 
-    // Inicializa a listagem ao carregar a página
-    window.onload = carregarAlunos;
-</script>
+        document.getElementById('selectAluno').addEventListener('change', function() {
+            const idSelecionado = this.value;
+            const aluno = listaAlunosGlobal.find(a => a.id == idSelecionado);
+            const card = document.getElementById('cardDetalhes');
+            
+            if (aluno) {
+                document.getElementById('freq').value = aluno.frequencia;
+                document.getElementById('mat').value = aluno.nota_mat;
+                document.getElementById('port').value = aluno.nota_port;
+                document.getElementById('rep').value = aluno.historico_reprovacoes;
 
+                document.getElementById('lblTurma').textContent = aluno.turma || 'N/A';
+                document.getElementById('lblHorario').textContent = aluno.horario || 'N/A';
+                document.getElementById('lblProfessor').textContent = aluno.nome_professor || 'N/A';
+                card.style.display = 'block';
+            } else {
+                document.getElementById('freq').value = '';
+                document.getElementById('mat').value = '';
+                document.getElementById('port').value = '';
+                document.getElementById('rep').value = '';
+                card.style.display = 'none';
+            }
+        });
+
+        document.getElementById('formCadastro').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const novoAluno = {
+                nome: document.getElementById('cadNome').value,
+                turma: document.getElementById('cadTurma').value,
+                horario: document.getElementById('cadHorario').value,
+                nome_professor: document.getElementById('cadProfessor').value,
+                frequencia: parseFloat(document.getElementById('cadFrequencia').value),
+                nota_mat: parseFloat(document.getElementById('cadNotaMat').value),
+                nota_port: parseFloat(document.getElementById('cadNotaPort').value),
+                historico_reprovacoes: parseInt(document.getElementById('cadReprovacoes').value)
+            };
+
+            const msgDiv = document.getElementById('msgCadastro');
+            try {
+                const res = await fetch('/alunos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novoAluno)
+                });
+                
+                if (res.ok) {
+                    msgDiv.className = 'resultado sucesso';
+                    msgDiv.textContent = 'Aluno cadastrado com sucesso e integrado na BD!';
+                    msgDiv.style.display = 'block';
+                    document.getElementById('formCadastro').reset();
+                    carregarAlunos(); // Atualiza o menu suspenso automaticamente
+                } else {
+                    msgDiv.className = 'resultado erro';
+                    msgDiv.textContent = 'Erro ao registar aluno.';
+                    msgDiv.style.display = 'block';
+                }
+            } catch (err) {
+                msgDiv.className = 'resultado erro';
+                msgDiv.textContent = 'Erro de comunicação com o servidor.';
+                msgDiv.style.display = 'block';
+            }
+        });
+
+        async function analisarRisco() {
+            const alunoId = document.getElementById('selectAluno').value;
+            const resDiv = document.getElementById('resultadoAnalise');
+            if (!alunoId) {
+                alert('Selecione um aluno primeiro!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/predict/${alunoId}`, { method: 'POST' });
+                const data = await response.json();
+                resDiv.style.display = 'block';
+                if (response.ok) {
+                    if (data.risco_evasao === 1) {
+                        resDiv.className = 'resultado erro';
+                        resDiv.textContent = `⚠️ ALTO RISCO DE EVASÃO - Probabilidade: ${(data.probabilidade * 100).toFixed(1)}%`;
+                    } else {
+                        resDiv.className = 'resultado sucesso';
+                        resDiv.textContent = `✅ BAIXO RISCO DE EVASÃO - Probabilidade de Risco: ${(data.probabilidade * 100).toFixed(1)}%`;
+                    }
+                } else {
+                    resDiv.className = 'resultado erro';
+                    resDiv.textContent = data.detail || 'Erro ao processar análise.';
+                }
+            } catch (err) {
+                resDiv.style.display = 'block';
+                resDiv.className = 'resultado erro';
+                resDiv.textContent = 'Erro ao se comunicar com o servidor da IA.';
+            }
+        }
+
+        carregarAlunos();
+    </script>
 </body>
 </html>
