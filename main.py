@@ -1,14 +1,12 @@
-﻿from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import sqlite3
+﻿import sqlite3
 import joblib
-import numpy as np
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(
-    title="API de Gestão Escolar com IA",
-    description="Módulo de IA integrado com SQLite para apoio à decisão acadêmica."
-)
+app = FastAPI(title="API de Gestão Escolar com IA")
 
+# Configurar CORS para permitir acessos livres à API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,59 +15,73 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-modelo = joblib.load('modelo_risco_escolar.pkl')
+# Carregar o modelo preditivo treinado (.pkl)
+try:
+    modelo = joblib.load("modelo_risco_escolar.pkl")
+except Exception as e:
+    modelo = None
 
-def conectar_db():
-    conn = sqlite3.connect('escola.db')
-    conn.row_factory = sqlite3.Row # Permite retornar os resultados como dicionários
+def conectar_banco():
+    conn = sqlite3.connect("escola.db")
+    conn.row_factory = sqlite3.Row
     return conn
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {"status": "API de Gestão Escolar com IA e Banco de Dados online!"}
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<html><body><h3>API de Gestão Escolar com IA e Banco de Dados online!</h3><p>Ficheiro index.html não encontrado no servidor.</p></body></html>"
 
 @app.get("/alunos")
 def listar_alunos():
-    """Retorna a lista de todos os alunos cadastrados na base de dados."""
-    conn = conectar_db()
+    conn = conectar_banco()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM alunos")
-    alunos = [dict(row) for row in cursor.fetchall()]
+    cursor.execute("SELECT id, nome, frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos")
+    linhas = cursor.fetchall()
     conn.close()
+    
+    alunos = []
+    for linha in linhas:
+        alunos.append({
+            "id": linha["id"],
+            "nome": linha["nome"],
+            "frequencia": linha["frequencia"],
+            "nota_mat": linha["nota_mat"],
+            "nota_port": linha["nota_port"],
+            "historico_reprovacoes": linha["historico_reprovacoes"]
+        })
     return alunos
 
 @app.post("/predict/{aluno_id}")
-def prever_risco_aluno(aluno_id: int):
-    """Busca um aluno pelo ID no banco de dados e aplica o modelo de IA."""
-    conn = conectar_db()
+def prever_risco(aluno_id: int):
+    if modelo is None:
+        raise HTTPException(status_code=500, detail="Modelo de IA não carregado no servidor.")
+        
+    conn = conectar_banco()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM alunos WHERE id = ?", (aluno_id,))
-    row = cursor.fetchone()
+    cursor.execute("SELECT frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos WHERE id = ?", (aluno_id,))
+    aluno = cursor.fetchone()
     conn.close()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado na base de dados.")
-
-    aluno = dict(row)
     
-    # Extrair as variáveis para o modelo
-    entrada = np.array([[
-        aluno['frequencia'],
-        aluno['media_geral'],
-        aluno['media_disciplina'],
-        aluno['atrasos'],
-        aluno['ocorrencias']
-    ]])
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+        
+    # Extrair as características para alimentar o modelo de Machine Learning
+    features = [[
+        aluno["frequencia"],
+        aluno["nota_mat"],
+        aluno["nota_port"],
+        aluno["historico_reprovacoes"]
+    ]]
     
-    predicao = int(modelo.predict(entrada)[0])
-    probabilidade = float(modelo.predict_proba(entrada)[0][predicao])
-    status_texto = "Acompanhamento Necessário" if predicao == 1 else "Regular"
+    # Executar a predição
+    predicao = int(modelo.predict(features)[0])
+    probabilidade = float(modelo.predict_proba(features)[0][1])
     
     return {
-        "aluno": aluno['nome'],
-        "dados_academicos": aluno,
-        "classificacao": predicao,
-        "status": status_texto,
-        "confianca": round(probabilidade * 100, 2),
-        "mensagem": "Resultado destinado ao apoio à decisão humana, sem automação punitiva."
+        "aluno_id": aluno_id,
+        "risco_evasao": predicao,
+        "probabilidade": probabilidade
     }
