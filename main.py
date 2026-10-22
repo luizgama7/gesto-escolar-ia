@@ -21,6 +21,42 @@ try:
 except Exception as e:
     modelo = None
 
+def inicializar_banco():
+    """Cria a base de dados e a tabela de alunos automaticamente se não existirem"""
+    conn = sqlite3.connect("escola.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alunos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            frequencia REAL NOT NULL,
+            nota_mat REAL NOT NULL,
+            nota_port REAL NOT NULL,
+            historico_reprovacoes INTEGER NOT NULL
+        )
+    ''')
+    
+    # Inserir dados de exemplo caso a tabela esteja vazia
+    cursor.execute("SELECT COUNT(*) FROM alunos")
+    if cursor.fetchone()[0] == 0:
+        alunos_exemplo = [
+            ("Ana Silva", 88.5, 7.5, 8.0, 0),
+            ("Bruno Santos", 58.0, 4.2, 5.0, 2),
+            ("Carla Oliveira", 95.0, 9.0, 9.5, 0),
+            ("Daniel Souza", 72.0, 5.5, 6.0, 1),
+            ("Elena Costa", 45.0, 3.0, 4.0, 3)
+        ]
+        cursor.executemany("""
+            INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes)
+            VALUES (?, ?, ?, ?, ?)
+        """, alunos_exemplo)
+        conn.commit()
+    
+    conn.close()
+
+# Executar a inicialização ao iniciar a aplicação
+inicializar_banco()
+
 def conectar_banco():
     conn = sqlite3.connect("escola.db")
     conn.row_factory = sqlite3.Row
@@ -32,7 +68,7 @@ def home():
         with open("index.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<html><body><h3>API de Gestão Escolar com IA e Banco de Dados online!</h3><p>Ficheiro index.html não encontrado no servidor.</p></body></html>"
+        return "<html><body><h3>API de Gestão Escolar com IA e Banco de Dados online!</h3></body></html>"
 
 @app.get("/alunos")
 def listar_alunos():
@@ -68,7 +104,6 @@ def prever_risco(aluno_id: int):
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado.")
         
-    # Extrair as características para alimentar o modelo de Machine Learning
     features = [[
         aluno["frequencia"],
         aluno["nota_mat"],
@@ -76,7 +111,6 @@ def prever_risco(aluno_id: int):
         aluno["historico_reprovacoes"]
     ]]
     
-    # Executar a predição
     predicao = int(modelo.predict(features)[0])
     probabilidade = float(modelo.predict_proba(features)[0][1])
     
