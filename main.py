@@ -3,6 +3,7 @@ import joblib
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI(title="API de Gestão Escolar com IA")
 
@@ -20,7 +21,6 @@ try:
 except Exception as e:
     modelo = None
 
-# Caminho na pasta /tmp (único local com permissão de escrita no plano gratuito do Render)
 DB_PATH = "/tmp/escola.db"
 
 def inicializar_banco():
@@ -33,22 +33,25 @@ def inicializar_banco():
             frequencia REAL NOT NULL,
             nota_mat REAL NOT NULL,
             nota_port REAL NOT NULL,
-            historico_reprovacoes INTEGER NOT NULL
+            historico_reprovacoes INTEGER NOT NULL,
+            turma TEXT,
+            horario TEXT,
+            nome_professor TEXT
         )
     ''')
     
     cursor.execute("SELECT COUNT(*) FROM alunos")
     if cursor.fetchone()[0] == 0:
         alunos_exemplo = [
-            ("Ana Silva", 88.5, 7.5, 8.0, 0),
-            ("Bruno Santos", 58.0, 4.2, 5.0, 2),
-            ("Carla Oliveira", 95.0, 9.0, 9.5, 0),
-            ("Daniel Souza", 72.0, 5.5, 6.0, 1),
-            ("Elena Costa", 45.0, 3.0, 4.0, 3)
+            ("Ana Silva", 88.5, 7.5, 8.0, 0, "1º Ano A", "Matutino", "Prof. Carlos"),
+            ("Bruno Santos", 58.0, 4.2, 5.0, 2, "1º Ano B", "Vespertino", "Profª Mariana"),
+            ("Carla Oliveira", 95.0, 9.0, 9.5, 0, "2º Ano A", "Matutino", "Prof. Carlos"),
+            ("Daniel Souza", 72.0, 5.5, 6.0, 1, "2º Ano B", "Vespertino", "Profª Mariana"),
+            ("Elena Costa", 45.0, 3.0, 4.0, 3, "3º Ano A", "Noturno", "Prof. Roberto")
         ]
         cursor.executemany("""
-            INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, alunos_exemplo)
         conn.commit()
     
@@ -60,6 +63,16 @@ def conectar_banco():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+class AlunoCreate(BaseModel):
+    nome: str
+    frequencia: float
+    nota_mat: float
+    nota_port: float
+    historico_reprovacoes: int
+    turma: str
+    horario: str
+    nome_professor: str
 
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -73,7 +86,7 @@ def home():
 def listar_alunos():
     conn = conectar_banco()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nome, frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos")
+    cursor.execute("SELECT id, nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor FROM alunos")
     linhas = cursor.fetchall()
     conn.close()
     
@@ -85,9 +98,28 @@ def listar_alunos():
             "frequencia": linha["frequencia"],
             "nota_mat": linha["nota_mat"],
             "nota_port": linha["nota_port"],
-            "historico_reprovacoes": linha["historico_reprovacoes"]
+            "historico_reprovacoes": linha["historico_reprovacoes"],
+            "turma": linha["turma"],
+            "horario": linha["horario"],
+            "nome_professor": linha["nome_professor"]
         })
     return alunos
+
+@app.post("/alunos")
+def criar_aluno(aluno: AlunoCreate):
+    conn = conectar_banco()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        aluno.nome, aluno.frequencia, aluno.nota_mat, aluno.nota_port, 
+        aluno.historico_reprovacoes, aluno.turma, aluno.horario, aluno.nome_professor
+    ))
+    conn.commit()
+    novo_id = cursor.lastrowid
+    conn.close()
+    return {"mensagem": "Aluno cadastrado com sucesso!", "id": novo_id}
 
 @app.post("/predict/{aluno_id}")
 def prever_risco(aluno_id: int):
