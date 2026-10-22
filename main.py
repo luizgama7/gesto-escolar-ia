@@ -1,9 +1,11 @@
 ﻿import sqlite3
 import joblib
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sklearn.ensemble import RandomForestClassifier
 
 app = FastAPI(title="API de Gestão Escolar com IA")
 
@@ -15,13 +17,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Carregar o modelo preditivo treinado (.pkl)
-try:
-    modelo = joblib.load("modelo_risco_escolar.pkl")
-except Exception as e:
-    modelo = None
-
 DB_PATH = "/tmp/escola.db"
+MODEL_PATH = "/tmp/modelo_risco_escolar.pkl"
+
+def carregar_ou_treinar_modelo():
+    """Carrega o modelo existente ou treina um novo modelo Random Forest automaticamente se não existir"""
+    if os.path.exists(MODEL_PATH):
+        try:
+            return joblib.load(MODEL_PATH)
+        except Exception:
+            pass
+            
+    if os.path.exists("modelo_risco_escolar.pkl"):
+        try:
+            m = joblib.load("modelo_risco_escolar.pkl")
+            joblib.dump(m, MODEL_PATH)
+            return m
+        except Exception:
+            pass
+            
+    # Treinamento automático de fallback para garantir que a IA funcione sempre na nuvem
+    # Features: [frequencia, nota_mat, nota_port, historico_reprovacoes]
+    X = [
+        [88.5, 7.5, 8.0, 0],
+        [58.0, 4.2, 5.0, 2],
+        [95.0, 9.0, 9.5, 0],
+        [72.0, 5.5, 6.0, 1],
+        [45.0, 3.0, 4.0, 3],
+        [90.0, 8.5, 8.5, 0],
+        [50.0, 3.5, 4.5, 2]
+    ]
+    # Rótulos: 0 (Baixo Risco / Aprovado), 1 (Alto Risco / Evasão)
+    y = [0, 1, 0, 0, 1, 0, 1]
+    
+    clf = RandomForestClassifier(random_state=42)
+    clf.fit(X, y)
+    joblib.dump(clf, MODEL_PATH)
+    return clf
+
+modelo = carregar_ou_treinar_modelo()
 
 def inicializar_banco():
     conn = sqlite3.connect(DB_PATH)
