@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Gestor - Apoio à Decisão</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9; }
+        .card { background: white; padding: 25px; border-radius: 8px; max-width: 450px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background-color: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
+        #resultado { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .risco { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .normal { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body onload="carregarAlunos()">
+
+<div class="card">
+    <h2>Análise de Acompanhamento</h2>
+    
+    <div class="form-group">
+        <label>Selecionar Aluno da Base de Dados:</label>
+        <select id="alunoSelect" onchange="selecionarAluno()">
+            <option value="">-- Selecione um aluno --</option>
+        </select>
+    </div>
+
+    <form id="formAluno">
+        <div class="form-group">
+            <label>Frequência (%):</label>
+            <input type="number" id="frequencia" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label>Média Geral (0 a 10):</label>
+            <input type="number" id="media_geral" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label>Média Disciplina (0 a 10):</label>
+            <input type="number" id="media_disciplina" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label>Atrasos:</label>
+            <input type="number" id="atrasos" required>
+        </div>
+        <div class="form-group">
+            <label>Ocorrências Acadêmicas:</label>
+            <input type="number" id="ocorrencias" required>
+        </div>
+        <button type="button" onclick="analisar()">Analisar com IA</button>
+    </form>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+let listaAlunos = [];
+
+async function carregarAlunos() {
+    try {
+        const resposta = await fetch('http://127.0.0.1:8000/alunos');
+        listaAlunos = await resposta.json();
+        const select = document.getElementById('alunoSelect');
+        
+        listaAlunos.forEach(aluno => {
+            const option = document.createElement('option');
+            option.value = aluno.id;
+            option.textContent = aluno.nome;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar alunos:", error);
+    }
+}
+
+function selecionarAluno() {
+    const idSelecionado = document.getElementById('alunoSelect').value;
+    if (!idSelecionado) return;
+
+    const aluno = listaAlunos.find(a => a.id == idSelecionado);
+    if (aluno) {
+        document.getElementById('frequencia').value = aluno.frequencia;
+        document.getElementById('media_geral').value = aluno.media_geral;
+        document.getElementById('media_disciplina').value = aluno.media_disciplina;
+        document.getElementById('atrasos').value = aluno.atrasos;
+        document.getElementById('ocorrencias').value = aluno.ocorrencias;
+    }
+}
+
+async function analisar() {
+    const alunoId = document.getElementById('alunoSelect').value;
+    
+    if (!alunoId) {
+        alert("Por favor, selecione um aluno da base de dados.");
+        return;
+    }
+
+    const resposta = await fetch(`http://127.0.0.1:8000/predict/${alunoId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    const data = await resposta.json();
+    const div = document.getElementById('resultado');
+    div.style.display = 'block';
+    
+    if (data.classificacao === 1) {
+        div.className = 'risco';
+        div.innerHTML = `<strong>Aluno:</strong> ${data.aluno}<br><strong>Atenção:</strong> ${data.status}<br>Confiança do Modelo: ${data.confianca}%`;
+    } else {
+        div.className = 'normal';
+        div.innerHTML = `<strong>Aluno:</strong> ${data.aluno}<br><strong>Situação:</strong> ${data.status}<br>Confiança do Modelo: ${data.confianca}%`;
+    }
+}
+</script>
+
+</body>
+</html>

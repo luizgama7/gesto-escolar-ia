@@ -1,0 +1,49 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+import joblib
+import numpy as np
+
+# Inicializa a API
+app = FastAPI(
+    title="API de Gestão Escolar com IA",
+    description="Módulo de IA para classificação de necessidade de acompanhamento acadêmico."
+)
+
+# Carrega o modelo treinado que geramos agora pouco
+modelo = joblib.load('modelo_risco_escolar.pkl')
+
+# Define a estrutura de dados esperada no corpo da requisição (Payload)
+class AlunoDados(BaseModel):
+    frequencia: float
+    media_geral: float
+    media_disciplina: float
+    atrasos: int
+    ocorrencias: int
+
+@app.get("/")
+def home():
+    return {"status": "API de Gestão Escolar com IA está online!"}
+
+@app.post("/predict")
+def prever_risco(dados: AlunoDados):
+    # Organiza os dados recebidos em um array compatível com o scikit-learn
+    entrada = np.array([[
+        dados.frequencia,
+        dados.media_geral,
+        dados.media_disciplina,
+        dados.atrasos,
+        dados.ocorrencias
+    ]])
+    
+    # Realiza a predição e extrai a probabilidade de confiança
+    predicao = int(modelo.predict(entrada)[0])
+    probabilidade = float(modelo.predict_proba(entrada)[0][predicao])
+    
+    status_texto = "Acompanhamento Necessário" if predicao == 1 else "Regular"
+    
+    return {
+        "classificacao": predicao,
+        "status": status_texto,
+        "confianca": round(probabilidade * 100, 2),
+        "mensagem": "Resultado destinado ao apoio à decisão humana, sem automação punitiva."
+    }

@@ -1,0 +1,57 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import joblib
+
+# 1. Configurar semente para reproducibilidade
+np.random.seed(42)
+num_amostras = 1000
+
+# 2. Gerar dados sintéticos de alunos
+frequencia = np.random.uniform(50.0, 100.0, num_amostras)      # % de frequência
+media_geral = np.random.uniform(2.0, 10.0, num_amostras)        # Média geral (0 a 10)
+media_disciplina = np.random.uniform(2.0, 10.0, num_amostras)   # Média em disciplina crítica
+atrasos = np.random.randint(0, 15, num_amostras)               # Qtde de atrasos
+ocorrencias = np.random.randint(0, 8, num_amostras)            # Ocorrências acadêmicas
+
+# 3. Definir regra lógica para rotular a necessidade de acompanhamento (0: Normal, 1: Acompanhamento Necessário)
+classe = []
+for i in range(num_amostras):
+    if frequencia[i] < 75.0 or media_geral[i] < 5.5 or ocorrencias[i] >= 4:
+        classe.append(1)  # Requer acompanhamento
+    else:
+        classe.append(0)  # Regular
+
+df = pd.DataFrame({
+    'frequencia': frequencia,
+    'media_geral': media_geral,
+    'media_disciplina': media_disciplina,
+    'atrasos': atrasos,
+    'ocorrencias': ocorrencias,
+    'classe': classe
+})
+
+# 4. Separar atributos (X) e rótulo (y)
+X = df[['frequencia', 'media_geral', 'media_disciplina', 'atrasos', 'ocorrencias']]
+y = df['classe']
+
+# 5. Divisão Treino e Teste (80% treino, 20% teste)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 6. Treinamento do Modelo Random Forest
+modelo = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo.fit(X_train, y_train)
+
+# 7. Avaliação
+y_pred = modelo.predict(X_test)
+print("=== Relatório de Classificação ===")
+print(classification_report(y_test, y_pred))
+
+print("=== Matriz de Confusão ===")
+print(confusion_matrix(y_test, y_pred))
+
+# 8. Salvar o modelo treinado
+joblib.dump(modelo, 'modelo_risco_escolar.pkl')
+print("\nModelo salvo com sucesso em 'modelo_risco_escolar.pkl'!")
