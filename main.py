@@ -17,27 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "/tmp/escola.db"
-MODEL_PATH = "/tmp/modelo_risco_escolar.pkl"
+DB_PATH = "/tmp/escola_v3.db"
+MODEL_PATH = "/tmp/modelo_risco_escolar_v3.pkl"
 
 def carregar_ou_treinar_modelo():
-    """Carrega o modelo existente ou treina um novo modelo Random Forest automaticamente se não existir"""
     if os.path.exists(MODEL_PATH):
         try:
             return joblib.load(MODEL_PATH)
         except Exception:
             pass
             
-    if os.path.exists("modelo_risco_escolar.pkl"):
-        try:
-            m = joblib.load("modelo_risco_escolar.pkl")
-            joblib.dump(m, MODEL_PATH)
-            return m
-        except Exception:
-            pass
-            
-    # Treinamento automático de fallback para garantir que a IA funcione sempre na nuvem
-    # Features: [frequencia, nota_mat, nota_port, historico_reprovacoes]
     X = [
         [88.5, 7.5, 8.0, 0],
         [58.0, 4.2, 5.0, 2],
@@ -47,7 +36,6 @@ def carregar_ou_treinar_modelo():
         [90.0, 8.5, 8.5, 0],
         [50.0, 3.5, 4.5, 2]
     ]
-    # Rótulos: 0 (Baixo Risco / Aprovado), 1 (Alto Risco / Evasão)
     y = [0, 1, 0, 0, 1, 0, 1]
     
     clf = RandomForestClassifier(random_state=42)
@@ -157,30 +145,33 @@ def criar_aluno(aluno: AlunoCreate):
 
 @app.post("/predict/{aluno_id}")
 def prever_risco(aluno_id: int):
-    if modelo is None:
-        raise HTTPException(status_code=500, detail="Modelo de IA não carregado no servidor.")
+    try:
+        if modelo is None:
+            raise HTTPException(status_code=500, detail="Modelo de IA não carregado no servidor.")
+            
+        conn = conectar_banco()
+        cursor = conn.cursor()
+        cursor.execute("SELECT frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos WHERE id = ?", (aluno_id,))
+        aluno = cursor.fetchone()
+        conn.close()
         
-    conn = conectar_banco()
-    cursor = conn.cursor()
-    cursor.execute("SELECT frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos WHERE id = ?", (aluno_id,))
-    aluno = cursor.fetchone()
-    conn.close()
-    
-    if not aluno:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+            
+        features = [[
+            float(aluno["frequencia"]),
+            float(aluno["nota_mat"]),
+            float(aluno["nota_port"]),
+            int(aluno["historico_reprovacoes"])
+        ]]
         
-    features = [[
-        aluno["frequencia"],
-        aluno["nota_mat"],
-        aluno["nota_port"],
-        aluno["historico_reprovacoes"]
-    ]]
-    
-    predicao = int(modelo.predict(features)[0])
-    probabilidade = float(modelo.predict_proba(features)[0][1])
-    
-    return {
-        "aluno_id": aluno_id,
-        "risco_evasao": predicao,
-        "probabilidade": probabilidade
-    }
+        predicao = int(modelo.predict(features)[0])
+        probabilidade = float(modelo.predict_proba(features)[0][1])
+        
+        return {
+            "aluno_id": aluno_id,
+            "risco_evasao": predicao,
+            "probabilidade": probabilidade
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
