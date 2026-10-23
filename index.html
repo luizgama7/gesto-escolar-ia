@@ -6,34 +6,42 @@
     <title>Gesto Escolar IA - Dashboard UNIVESP</title>
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --card-bg: #ffffff;
-            --bg-color: #f1f5f9;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
+            /* PALETA AZUL METÁLICO ESCURO (DARK METALLIC BLUE) */
+            --bg-dark: #091526;
+            --card-dark: #0f233f;
+            --card-border: #1e3a63;
+            --metallic-blue: linear-gradient(135deg, #1b3a60 0%, #0d213a 50%, #163252 100%);
+            --metallic-shine: linear-gradient(135deg, #1e4b8a 0%, #102a4e 100%);
+            --accent-cyan: #38bdf8;
+            --accent-blue: #2563eb;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
             --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            --danger: #f43f5e;
+            --glass-bg: rgba(15, 35, 63, 0.75);
         }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at top, #112847 0%, #060e1a 100%);
+            background-attachment: fixed;
             margin: 0;
             padding: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--text-dark);
+            color: var(--text-light);
         }
 
-        /* ECRÃ DE LOGIN */
+        /* ECRÃ DE LOGIN METÁLICO */
         .login-card {
-            background: white;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
             padding: 40px;
             border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             width: 90%;
             max-width: 400px;
             text-align: center;
@@ -41,30 +49,30 @@
         }
         .login-card h2 {
             margin-bottom: 8px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent-cyan);
             font-size: 26px;
+            text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
         }
 
         /* APLICAÇÃO PRINCIPAL */
         .main-app {
             display: none;
             width: 100%;
-            max-width: 900px;
+            max-width: 920px;
             padding: 20px;
             box-sizing: border-box;
             animation: fadeIn 0.4s ease;
         }
 
-        /* CABEÇALHO DA APP */
+        /* CABEÇALHO AZUL METÁLICO */
         .app-header {
-            background: var(--primary-gradient);
+            background: var(--metallic-shine);
+            border: 1px solid #2a528a;
             border-radius: 24px;
             padding: 25px 30px;
             color: white;
             margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -73,14 +81,15 @@
             margin: 0;
             font-size: 24px;
             font-weight: 700;
+            color: var(--accent-cyan);
         }
         .app-header p {
             margin: 5px 0 0 0;
-            opacity: 0.9;
+            color: var(--text-muted);
             font-size: 14px;
         }
 
-        /* NAVEGAÇÃO POR TABS (ESTILO MENU APP) */
+        /* NAVEGAÇÃO TABS ESTILO NAVE METÁLICA */
         .nav-tabs {
             display: flex;
             gap: 12px;
@@ -89,31 +98,32 @@
         .tab-btn {
             flex: 1;
             padding: 14px;
-            border: none;
+            border: 1px solid var(--card-border);
             border-radius: 16px;
-            background: white;
+            background: var(--card-dark);
             color: var(--text-muted);
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
         .tab-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
             transform: translateY(-2px);
-            color: #6366f1;
         }
         .tab-btn.active {
-            background: var(--primary-gradient);
+            background: var(--metallic-shine);
+            border-color: var(--accent-cyan);
             color: white;
-            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
         }
 
-        /* PAINÉIS DE CONTEÚDO */
         .tab-content {
             display: none;
         }
@@ -122,7 +132,7 @@
             animation: slideUp 0.3s ease;
         }
 
-        /* CARTÕES KPIs DINÂMICOS */
+        /* KPIs EM AZUL METÁLICO */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -130,17 +140,19 @@
             margin-bottom: 25px;
         }
         .kpi-card {
-            background: white;
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
             gap: 15px;
-            transition: transform 0.2s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, border-color 0.2s;
         }
         .kpi-card:hover {
             transform: translateY(-3px);
+            border-color: var(--accent-cyan);
         }
         .kpi-icon {
             width: 50px;
@@ -150,13 +162,14 @@
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            background: #e0e7ff;
-            color: #4f46e5;
+            background: #163252;
+            color: var(--accent-cyan);
+            border: 1px solid #234b7c;
         }
         .kpi-info h3 {
             margin: 0;
-            font-size: 22px;
-            color: var(--text-dark);
+            font-size: 24px;
+            color: var(--text-light);
         }
         .kpi-info p {
             margin: 2px 0 0 0;
@@ -166,20 +179,22 @@
 
         /* CARTÃO PRINCIPAL */
         .card {
-            background: white;
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
             border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
             margin-bottom: 20px;
         }
         .card h2 {
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 20px;
-            color: var(--text-dark);
+            color: var(--accent-cyan);
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
         }
 
-        /* FORMULÁRIO RESPONSIVO */
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -193,24 +208,26 @@
             margin-bottom: 6px;
             font-weight: 600;
             font-size: 13px;
-            color: var(--text-dark);
+            color: var(--text-muted);
         }
         input, select {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e2e8f0;
+            background: #09182d;
+            border: 1.5px solid var(--card-border);
             border-radius: 12px;
             box-sizing: border-box;
             font-size: 14px;
+            color: var(--text-light);
             transition: all 0.2s;
         }
         input:focus, select:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
         }
 
-        /* BARRAS DE PROGRESSO VISUAL PARA NOTAS */
+        /* BARRAS DE NOTAS METÁLICAS */
         .subject-bar {
             margin-bottom: 12px;
         }
@@ -220,51 +237,57 @@
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 4px;
+            color: var(--text-light);
         }
         .bar-bg {
-            background: #e2e8f0;
+            background: #09182d;
+            border: 1px solid var(--card-border);
             height: 10px;
             border-radius: 10px;
             overflow: hidden;
         }
         .bar-fill {
             height: 100%;
-            background: var(--primary-gradient);
+            background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 100%);
             border-radius: 10px;
             width: 0%;
             transition: width 0.6s ease;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
 
-        /* BOTÕES */
+        /* BOTÕES METÁLICOS */
         .btn-action {
             width: 100%;
             padding: 14px;
-            border: none;
+            border: 1px solid var(--accent-cyan);
             border-radius: 14px;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
             color: white;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.4);
         }
         .btn-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 25px rgba(56, 189, 248, 0.4);
         }
         .btn-logout {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: white;
             padding: 8px 16px;
             border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            backdrop-filter: blur(5px);
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        /* RESULTADOS */
+        /* STATUS */
         .status-box {
             margin-top: 20px;
             padding: 16px;
@@ -275,12 +298,14 @@
             animation: fadeIn 0.3s ease;
         }
         .status-safe {
-            background: #dcfce7;
-            color: #15803d;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid #059669;
         }
         .status-danger {
-            background: #fee2e2;
-            color: #b91c1c;
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid #e11d48;
         }
 
         @keyframes fadeIn {
@@ -295,11 +320,11 @@
 </head>
 <body>
 
-    <!-- ECRÃ DE LOGIN ESTILO APP -->
+    <!-- ECRÃ DE LOGIN METÁLICO -->
     <div id="loginContainer" class="login-card">
         <div style="font-size: 48px; margin-bottom: 10px;">🎓</div>
         <h2>Gesto Escolar IA</h2>
-        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Plataforma Preditiva Pedagógica</p>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Acesso Restrito à Equipa Pedagógica</p>
         <form id="formLogin">
             <div class="form-group">
                 <label>Utilizador</label>
@@ -316,7 +341,7 @@
 
     <!-- APLICAÇÃO PRINCIPAL INTERATIVA -->
     <div id="appContainer" class="main-app">
-        <!-- HEADER COM GRADIENTE -->
+        <!-- HEADER METÁLICO -->
         <div class="app-header">
             <div>
                 <h1>Painel Escolar Preditivo</h1>
@@ -325,15 +350,14 @@
             <button class="btn-logout" onclick="fazerLogout()">Sair 🚪</button>
         </div>
 
-        <!-- NAVEGAÇÃO ESTILO TABS / CARDS -->
+        <!-- TABS DE NAVEGAÇÃO -->
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('tab-analise')">🔍 Analisar Risco com IA</button>
             <button class="tab-btn" onclick="switchTab('tab-cadastro')">➕ Cadastrar Aluno</button>
         </div>
 
-        <!-- ABA 1: ANÁLISE PREDITIVA E BOLETIM VISUAL -->
+        <!-- ABA 1: ANÁLISE PREDITIVA -->
         <div id="tab-analise" class="tab-content active">
-            <!-- CARDS DE METRICAS (KPIs) -->
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-icon">👥</div>
@@ -360,11 +384,10 @@
                 </div>
 
                 <div id="detalhesAluno" style="display: none; margin-top: 20px;">
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 20px; font-size: 14px;">
+                    <div style="background: #09182d; border: 1px solid var(--card-border); padding: 15px; border-radius: 16px; margin-bottom: 20px; font-size: 14px; color: var(--accent-cyan);">
                         <span id="lblTurma"></span> | <span id="lblHorario"></span> | <span id="lblProfessor"></span>
                     </div>
 
-                    <!-- DESEMPENHO VISUAL COM BARRAS COLORIDAS -->
                     <div class="grid-2">
                         <div class="subject-bar">
                             <div class="subject-info"><span>Matemática</span><span id="txtMat">-</span></div>
@@ -449,7 +472,7 @@
                         <div class="form-group"><label>Ciências</label><input type="number" step="0.1" id="cadNotaCie" required></div>
                     </div>
 
-                    <button type="submit" class="btn-action" style="background: var(--success); margin-top: 15px;">Salvar Aluno no Banco 💾</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); margin-top: 15px;">Salvar Aluno no Banco 💾</button>
                 </form>
                 <div id="msgCadastro" class="status-box"></div>
             </div>
@@ -459,7 +482,6 @@
     <script>
         let listaAlunosGlobal = [];
 
-        // TROCA DE SEPARADORES (TABS)
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -468,7 +490,6 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // AUTENTICAÇÃO
         document.getElementById('formLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
             const usuario = document.getElementById('loginUser').value;
@@ -501,13 +522,11 @@
             document.getElementById('loginContainer').style.display = 'block';
         }
 
-        // CARREGAR ALUNOS E ATUALIZAR METRICAS (KPIs)
         async function carregarAlunos() {
             try {
                 const res = await fetch('/alunos');
                 listaAlunosGlobal = await res.json();
                 
-                // Atualizar KPIs
                 document.getElementById('kpiTotal').textContent = listaAlunosGlobal.length;
                 if(listaAlunosGlobal.length > 0) {
                     const mediaFreq = listaAlunosGlobal.reduce((acc, a) => acc + a.frequencia, 0) / listaAlunosGlobal.length;
@@ -527,7 +546,6 @@
             }
         }
 
-        // SELEÇÃO DE ALUNO E BARRAS DE PROGRESSO ANIMADAS
         document.getElementById('selectAluno').addEventListener('change', function() {
             const id = this.value;
             const aluno = listaAlunosGlobal.find(a => a.id == id);
@@ -539,7 +557,6 @@
                 document.getElementById('lblHorario').textContent = `Turno: ${aluno.horario || 'N/A'}`;
                 document.getElementById('lblProfessor').textContent = `Prof: ${aluno.nome_professor || 'N/A'}`;
 
-                // Atualizar Barras Visuais (Multiplicado por 10 para porcentagem de 0 a 100%)
                 setBar('Mat', aluno.nota_mat);
                 setBar('Port', aluno.nota_port);
                 setBar('Ing', aluno.nota_ing);
@@ -556,7 +573,6 @@
             document.getElementById(`bar${materia}`).style.width = `${(nota / 10) * 100}%`;
         }
 
-        // CADASTRAR NOVO ALUNO
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             const novoAluno = {
@@ -600,7 +616,6 @@
             }
         });
 
-        // PREDIÇÃO DE RISCO COM IA
         async function analisarRisco() {
             const alunoId = document.getElementById('selectAluno').value;
             const resDiv = document.getElementById('resultadoAnalise');
