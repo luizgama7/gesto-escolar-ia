@@ -17,8 +17,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "/tmp/escola_v3.db"
-MODEL_PATH = "/tmp/modelo_risco_escolar_v3.pkl"
+DB_PATH = "/tmp/escola_v4.db"
+MODEL_PATH = "/tmp/modelo_risco_escolar_v4.pkl"
 
 def carregar_ou_treinar_modelo():
     if os.path.exists(MODEL_PATH):
@@ -27,15 +27,17 @@ def carregar_ou_treinar_modelo():
         except Exception:
             pass
             
+    # Features (8 colunas): [frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes]
     X = [
-        [88.5, 7.5, 8.0, 0],
-        [58.0, 4.2, 5.0, 2],
-        [95.0, 9.0, 9.5, 0],
-        [72.0, 5.5, 6.0, 1],
-        [45.0, 3.0, 4.0, 3],
-        [90.0, 8.5, 8.5, 0],
-        [50.0, 3.5, 4.5, 2]
+        [88.5, 7.5, 8.0, 8.5, 9.0, 8.0, 7.5, 0],
+        [58.0, 4.2, 5.0, 4.0, 6.0, 3.5, 4.0, 2],
+        [95.0, 9.0, 9.5, 9.0, 10.0, 9.5, 9.0, 0],
+        [72.0, 5.5, 6.0, 5.0, 7.5, 6.0, 5.5, 1],
+        [45.0, 3.0, 4.0, 3.5, 5.0, 3.0, 3.5, 3],
+        [90.0, 8.5, 8.5, 8.0, 8.5, 9.0, 8.5, 0],
+        [50.0, 3.5, 4.5, 4.0, 5.5, 4.0, 3.5, 2]
     ]
+    # Rótulos: 0 (Baixo Risco), 1 (Alto Risco)
     y = [0, 1, 0, 0, 1, 0, 1]
     
     clf = RandomForestClassifier(random_state=42)
@@ -55,6 +57,10 @@ def inicializar_banco():
             frequencia REAL NOT NULL,
             nota_mat REAL NOT NULL,
             nota_port REAL NOT NULL,
+            nota_ing REAL NOT NULL DEFAULT 7.0,
+            nota_edf REAL NOT NULL DEFAULT 8.0,
+            nota_his REAL NOT NULL DEFAULT 7.0,
+            nota_cie REAL NOT NULL DEFAULT 7.0,
             historico_reprovacoes INTEGER NOT NULL,
             turma TEXT,
             horario TEXT,
@@ -65,15 +71,15 @@ def inicializar_banco():
     cursor.execute("SELECT COUNT(*) FROM alunos")
     if cursor.fetchone()[0] == 0:
         alunos_exemplo = [
-            ("Ana Silva", 88.5, 7.5, 8.0, 0, "1º Ano A", "Matutino", "Prof. Carlos"),
-            ("Bruno Santos", 58.0, 4.2, 5.0, 2, "1º Ano B", "Vespertino", "Profª Mariana"),
-            ("Carla Oliveira", 95.0, 9.0, 9.5, 0, "2º Ano A", "Matutino", "Prof. Carlos"),
-            ("Daniel Souza", 72.0, 5.5, 6.0, 1, "2º Ano B", "Vespertino", "Profª Mariana"),
-            ("Elena Costa", 45.0, 3.0, 4.0, 3, "3º Ano A", "Noturno", "Prof. Roberto")
+            ("Ana Silva", 88.5, 7.5, 8.0, 8.5, 9.0, 8.0, 7.5, 0, "1º Ano A", "Matutino", "Prof. Carlos"),
+            ("Bruno Santos", 58.0, 4.2, 5.0, 4.0, 6.0, 3.5, 4.0, 2, "1º Ano B", "Vespertino", "Profª Mariana"),
+            ("Carla Oliveira", 95.0, 9.0, 9.5, 9.0, 10.0, 9.5, 9.0, 0, "2º Ano A", "Matutino", "Prof. Carlos"),
+            ("Daniel Souza", 72.0, 5.5, 6.0, 5.0, 7.5, 6.0, 5.5, 1, "2º Ano B", "Vespertino", "Profª Mariana"),
+            ("Elena Costa", 45.0, 3.0, 4.0, 3.5, 5.0, 3.0, 3.5, 3, "3º Ano A", "Noturno", "Prof. Roberto")
         ]
         cursor.executemany("""
-            INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes, turma, horario, nome_professor)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, alunos_exemplo)
         conn.commit()
     
@@ -91,6 +97,10 @@ class AlunoCreate(BaseModel):
     frequencia: float
     nota_mat: float
     nota_port: float
+    nota_ing: float
+    nota_edf: float
+    nota_his: float
+    nota_cie: float
     historico_reprovacoes: int
     turma: str
     horario: str
@@ -102,13 +112,13 @@ def home():
         with open("index.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<html><body><h3>API de Gestão Escolar com IA e Banco de Dados online!</h3></body></html>"
+        return "<html><body><h3>API de Gestão Escolar com IA online!</h3></body></html>"
 
 @app.get("/alunos")
 def listar_alunos():
     conn = conectar_banco()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor FROM alunos")
+    cursor.execute("SELECT id, nome, frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes, turma, horario, nome_professor FROM alunos")
     linhas = cursor.fetchall()
     conn.close()
     
@@ -120,6 +130,10 @@ def listar_alunos():
             "frequencia": linha["frequencia"],
             "nota_mat": linha["nota_mat"],
             "nota_port": linha["nota_port"],
+            "nota_ing": linha["nota_ing"],
+            "nota_edf": linha["nota_edf"],
+            "nota_his": linha["nota_his"],
+            "nota_cie": linha["nota_cie"],
             "historico_reprovacoes": linha["historico_reprovacoes"],
             "turma": linha["turma"],
             "horario": linha["horario"],
@@ -132,10 +146,11 @@ def criar_aluno(aluno: AlunoCreate):
     conn = conectar_banco()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, historico_reprovacoes, turma, horario, nome_professor)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO alunos (nome, frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes, turma, horario, nome_professor)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        aluno.nome, aluno.frequencia, aluno.nota_mat, aluno.nota_port, 
+        aluno.nome, aluno.frequencia, aluno.nota_mat, aluno.nota_port,
+        aluno.nota_ing, aluno.nota_edf, aluno.nota_his, aluno.nota_cie,
         aluno.historico_reprovacoes, aluno.turma, aluno.horario, aluno.nome_professor
     ))
     conn.commit()
@@ -151,7 +166,7 @@ def prever_risco(aluno_id: int):
             
         conn = conectar_banco()
         cursor = conn.cursor()
-        cursor.execute("SELECT frequencia, nota_mat, nota_port, historico_reprovacoes FROM alunos WHERE id = ?", (aluno_id,))
+        cursor.execute("SELECT frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes FROM alunos WHERE id = ?", (aluno_id,))
         aluno = cursor.fetchone()
         conn.close()
         
@@ -162,6 +177,10 @@ def prever_risco(aluno_id: int):
             float(aluno["frequencia"]),
             float(aluno["nota_mat"]),
             float(aluno["nota_port"]),
+            float(aluno["nota_ing"]),
+            float(aluno["nota_edf"]),
+            float(aluno["nota_his"]),
+            float(aluno["nota_cie"]),
             int(aluno["historico_reprovacoes"])
         ]]
         

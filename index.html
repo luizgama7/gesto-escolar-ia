@@ -21,7 +21,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             margin-bottom: 20px;
         }
         h2 {
@@ -32,11 +32,17 @@
         .form-group {
             margin-bottom: 15px;
         }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
+            font-size: 14px;
         }
         input, select {
             width: 100%;
@@ -106,39 +112,72 @@
                 <label>Nome do Aluno:</label>
                 <input type="text" id="cadNome" required placeholder="Ex: Lucas Mendes">
             </div>
-            <div class="form-group">
-                <label>Turma:</label>
-                <input type="text" id="cadTurma" required placeholder="Ex: 2º Ano B">
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Turma:</label>
+                    <input type="text" id="cadTurma" required placeholder="Ex: 2º Ano B">
+                </div>
+                <div class="form-group">
+                    <label>Turno / Horário:</label>
+                    <select id="cadHorario" required>
+                        <option value="">Selecione o Turno</option>
+                        <option value="Matutino">Matutino</option>
+                        <option value="Vespertino">Vespertino</option>
+                        <option value="Noturno">Noturno</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Turno / Horário:</label>
-                <select id="cadHorario" required>
-                    <option value="">Selecione o Turno</option>
-                    <option value="Matutino">Matutino</option>
-                    <option value="Vespertino">Vespertino</option>
-                    <option value="Noturno">Noturno</option>
-                </select>
-            </div>
+
             <div class="form-group">
                 <label>Professor Responsável:</label>
                 <input type="text" id="cadProfessor" required placeholder="Ex: Profª Ana Paula">
             </div>
-            <div class="form-group">
-                <label>Frequência (%):</label>
-                <input type="number" step="0.1" id="cadFrequencia" required placeholder="Ex: 85.0">
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Frequência (%):</label>
+                    <input type="number" step="0.1" id="cadFrequencia" required placeholder="Ex: 85.0">
+                </div>
+                <div class="form-group">
+                    <label>Histórico Reprovações:</label>
+                    <input type="number" id="cadReprovacoes" required value="0">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Nota de Matemática:</label>
-                <input type="number" step="0.1" id="cadNotaMat" required placeholder="Ex: 7.5">
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nota de Matemática:</label>
+                    <input type="number" step="0.1" id="cadNotaMat" required placeholder="Ex: 7.5">
+                </div>
+                <div class="form-group">
+                    <label>Nota de Português:</label>
+                    <input type="number" step="0.1" id="cadNotaPort" required placeholder="Ex: 8.0">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Nota de Português:</label>
-                <input type="number" step="0.1" id="cadNotaPort" required placeholder="Ex: 8.0">
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nota de Inglês:</label>
+                    <input type="number" step="0.1" id="cadNotaIng" required placeholder="Ex: 8.0">
+                </div>
+                <div class="form-group">
+                    <label>Nota de Educação Física:</label>
+                    <input type="number" step="0.1" id="cadNotaEdf" required placeholder="Ex: 9.0">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Histórico de Reprovações:</label>
-                <input type="number" id="cadReprovacoes" required value="0">
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nota de História:</label>
+                    <input type="number" step="0.1" id="cadNotaHis" required placeholder="Ex: 7.0">
+                </div>
+                <div class="form-group">
+                    <label>Nota de Ciências:</label>
+                    <input type="number" step="0.1" id="cadNotaCie" required placeholder="Ex: 7.5">
+                </div>
             </div>
+
             <button type="submit" class="btn-cadastrar">Salvar Novo Aluno</button>
         </form>
         <div id="msgCadastro" class="resultado"></div>
@@ -154,29 +193,55 @@
             </select>
         </div>
 
-        <!-- Detalhes do Aluno Selecionado -->
         <div id="cardDetalhes" class="card-detalhes">
-            <p><strong>Turma:</strong> <span id="lblTurma"></span></p>
-            <p><strong>Turno:</strong> <span id="lblHorario"></span></p>
+            <p><strong>Turma:</strong> <span id="lblTurma"></span> | <strong>Turno:</strong> <span id="lblHorario"></span></p>
             <p><strong>Professor:</strong> <span id="lblProfessor"></span></p>
         </div>
 
-        <div class="form-group">
-            <label>Frequência (%):</label>
-            <input type="text" id="freq" readonly>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Frequência (%):</label>
+                <input type="text" id="freq" readonly>
+            </div>
+            <div class="form-group">
+                <label>Histórico Reprovações:</label>
+                <input type="text" id="rep" readonly>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Nota de Matemática:</label>
-            <input type="text" id="mat" readonly>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Matemática:</label>
+                <input type="text" id="mat" readonly>
+            </div>
+            <div class="form-group">
+                <label>Português:</label>
+                <input type="text" id="port" readonly>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Nota de Português:</label>
-            <input type="text" id="port" readonly>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Inglês:</label>
+                <input type="text" id="ing" readonly>
+            </div>
+            <div class="form-group">
+                <label>Educação Física:</label>
+                <input type="text" id="edf" readonly>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Histórico de Reprovações:</label>
-            <input type="text" id="rep" readonly>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>História:</label>
+                <input type="text" id="his" readonly>
+            </div>
+            <div class="form-group">
+                <label>Ciências:</label>
+                <input type="text" id="cie" readonly>
+            </div>
         </div>
+
         <button onclick="analisarRisco()">Analisar Risco com IA</button>
         <div id="resultadoAnalise" class="resultado"></div>
     </div>
@@ -208,19 +273,20 @@
             
             if (aluno) {
                 document.getElementById('freq').value = aluno.frequencia;
+                document.getElementById('rep').value = aluno.historico_reprovacoes;
                 document.getElementById('mat').value = aluno.nota_mat;
                 document.getElementById('port').value = aluno.nota_port;
-                document.getElementById('rep').value = aluno.historico_reprovacoes;
+                document.getElementById('ing').value = aluno.nota_ing;
+                document.getElementById('edf').value = aluno.nota_edf;
+                document.getElementById('his').value = aluno.nota_his;
+                document.getElementById('cie').value = aluno.nota_cie;
 
                 document.getElementById('lblTurma').textContent = aluno.turma || 'N/A';
                 document.getElementById('lblHorario').textContent = aluno.horario || 'N/A';
                 document.getElementById('lblProfessor').textContent = aluno.nome_professor || 'N/A';
                 card.style.display = 'block';
             } else {
-                document.getElementById('freq').value = '';
-                document.getElementById('mat').value = '';
-                document.getElementById('port').value = '';
-                document.getElementById('rep').value = '';
+                document.querySelectorAll('input[readonly]').forEach(i => i.value = '');
                 card.style.display = 'none';
             }
         });
@@ -235,6 +301,10 @@
                 frequencia: parseFloat(document.getElementById('cadFrequencia').value),
                 nota_mat: parseFloat(document.getElementById('cadNotaMat').value),
                 nota_port: parseFloat(document.getElementById('cadNotaPort').value),
+                nota_ing: parseFloat(document.getElementById('cadNotaIng').value),
+                nota_edf: parseFloat(document.getElementById('cadNotaEdf').value),
+                nota_his: parseFloat(document.getElementById('cadNotaHis').value),
+                nota_cie: parseFloat(document.getElementById('cadNotaCie').value),
                 historico_reprovacoes: parseInt(document.getElementById('cadReprovacoes').value)
             };
 
@@ -251,7 +321,7 @@
                     msgDiv.textContent = 'Aluno cadastrado com sucesso e integrado na BD!';
                     msgDiv.style.display = 'block';
                     document.getElementById('formCadastro').reset();
-                    carregarAlunos(); // Atualiza o menu suspenso automaticamente
+                    carregarAlunos();
                 } else {
                     msgDiv.className = 'resultado erro';
                     msgDiv.textContent = 'Erro ao registar aluno.';
