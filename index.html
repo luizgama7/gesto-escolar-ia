@@ -6,7 +6,6 @@
     <title>Gesto Escolar IA - Dashboard UNIVESP</title>
     <style>
         :root {
-            /* PALETA AZUL METÁLICO ESCURO (DARK METALLIC BLUE) */
             --bg-dark: #091526;
             --card-dark: #0f233f;
             --card-border: #1e3a63;
@@ -34,7 +33,6 @@
             color: var(--text-light);
         }
 
-        /* ECRÃ DE LOGIN METÁLICO */
         .login-card {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -54,7 +52,6 @@
             text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
         }
 
-        /* APLICAÇÃO PRINCIPAL */
         .main-app {
             display: none;
             width: 100%;
@@ -64,7 +61,6 @@
             animation: fadeIn 0.4s ease;
         }
 
-        /* CABEÇALHO AZUL METÁLICO */
         .app-header {
             background: var(--metallic-shine);
             border: 1px solid #2a528a;
@@ -89,7 +85,6 @@
             font-size: 14px;
         }
 
-        /* NAVEGAÇÃO TABS ESTILO NAVE METÁLICA */
         .nav-tabs {
             display: flex;
             gap: 12px;
@@ -132,7 +127,6 @@
             animation: slideUp 0.3s ease;
         }
 
-        /* KPIs EM AZUL METÁLICO */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -177,7 +171,6 @@
             color: var(--text-muted);
         }
 
-        /* CARTÃO PRINCIPAL */
         .card {
             background: var(--card-dark);
             border: 1px solid var(--card-border);
@@ -227,7 +220,6 @@
             box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
         }
 
-        /* BARRAS DE NOTAS METÁLICAS */
         .subject-bar {
             margin-bottom: 12px;
         }
@@ -255,7 +247,6 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
 
-        /* BOTÕES METÁLICOS */
         .btn-action {
             width: 100%;
             padding: 14px;
@@ -287,7 +278,6 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        /* STATUS */
         .status-box {
             margin-top: 20px;
             padding: 16px;
@@ -320,7 +310,6 @@
 </head>
 <body>
 
-    <!-- ECRÃ DE LOGIN METÁLICO -->
     <div id="loginContainer" class="login-card">
         <div style="font-size: 48px; margin-bottom: 10px;">🎓</div>
         <h2>Gesto Escolar IA</h2>
@@ -339,9 +328,7 @@
         <div id="msgLogin" class="status-box status-danger"></div>
     </div>
 
-    <!-- APLICAÇÃO PRINCIPAL INTERATIVA -->
     <div id="appContainer" class="main-app">
-        <!-- HEADER METÁLICO -->
         <div class="app-header">
             <div>
                 <h1>Painel Escolar Preditivo</h1>
@@ -350,13 +337,11 @@
             <button class="btn-logout" onclick="fazerLogout()">Sair 🚪</button>
         </div>
 
-        <!-- TABS DE NAVEGAÇÃO -->
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('tab-analise')">🔍 Analisar Risco com IA</button>
             <button class="tab-btn" onclick="switchTab('tab-cadastro')">➕ Cadastrar Aluno</button>
         </div>
 
-        <!-- ABA 1: ANÁLISE PREDITIVA -->
         <div id="tab-analise" class="tab-content active">
             <div class="kpi-grid">
                 <div class="kpi-card">
@@ -421,7 +406,6 @@
             </div>
         </div>
 
-        <!-- ABA 2: CADASTRAR NOVO ALUNO -->
         <div id="tab-cadastro" class="tab-content">
             <div class="card">
                 <h2>Novo Registo Académico</h2>
@@ -524,6 +508,17 @@
 
         async function carregarAlunos() {
             try {
+                // 1. Sincronizar automaticamente os alunos salvos no navegador para o servidor (caso tenha reiniciado)
+                let alunosLocais = JSON.parse(localStorage.getItem('alunos_tcc') || '[]');
+                for (let aluno of alunosLocais) {
+                    await fetch('/alunos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(aluno)
+                    }).catch(() => {});
+                }
+
+                // 2. Buscar lista atualizada do servidor
                 const res = await fetch('/alunos');
                 listaAlunosGlobal = await res.json();
                 
@@ -599,8 +594,13 @@
                 });
 
                 if (res.ok) {
+                    // Guardar no localStorage do navegador para persistência duradoura
+                    let alunosLocais = JSON.parse(localStorage.getItem('alunos_tcc') || '[]');
+                    alunosLocais.push(novoAluno);
+                    localStorage.setItem('alunos_tcc', JSON.stringify(alunosLocais));
+
                     msgDiv.className = 'status-box status-safe';
-                    msgDiv.textContent = 'Aluno cadastrado com sucesso!';
+                    msgDiv.textContent = 'Aluno cadastrado e persistido com sucesso!';
                     msgDiv.style.display = 'block';
                     document.getElementById('formCadastro').reset();
                     carregarAlunos();
