@@ -27,7 +27,6 @@ def carregar_ou_treinar_modelo():
         except Exception:
             pass
             
-    # Features (8 colunas): [frequencia, nota_mat, nota_port, nota_ing, nota_edf, nota_his, nota_cie, historico_reprovacoes]
     X = [
         [88.5, 7.5, 8.0, 8.5, 9.0, 8.0, 7.5, 0],
         [58.0, 4.2, 5.0, 4.0, 6.0, 3.5, 4.0, 2],
@@ -37,7 +36,6 @@ def carregar_ou_treinar_modelo():
         [90.0, 8.5, 8.5, 8.0, 8.5, 9.0, 8.5, 0],
         [50.0, 3.5, 4.5, 4.0, 5.5, 4.0, 3.5, 2]
     ]
-    # Rótulos: 0 (Baixo Risco), 1 (Alto Risco)
     y = [0, 1, 0, 0, 1, 0, 1]
     
     clf = RandomForestClassifier(random_state=42)
@@ -105,6 +103,17 @@ class AlunoCreate(BaseModel):
     turma: str
     horario: str
     nome_professor: str
+
+class LoginRequest(BaseModel):
+    usuario: str
+    senha: str
+
+@app.post("/login")
+def fazer_login(login: LoginRequest):
+    # Credenciais configuradas para a apresentação do TCC
+    if login.usuario == "admin" and login.senha == "univesp2026":
+        return {"sucesso": True, "mensagem": "Autenticação bem-sucedida!"}
+    raise HTTPException(status_code=401, detail="Credenciais inválidas. Utilizador ou senha incorretos.")
 
 @app.get("/", response_class=HTMLResponse)
 def home():
